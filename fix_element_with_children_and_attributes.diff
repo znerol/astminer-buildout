@@ -1,0 +1,38 @@
+diff --git src/tests/util_test.py.orig src/tests/util_test.py
+index a1f3cef..c58caf3 100644
+--- src/tests/util_test.py.orig
++++ src/tests/util_test.py
+@@ -277,6 +277,20 @@ class UtilTest(unittest.TestCase):
+         xml = util.to_xml({'key_name': 'value'}, dasherize=False)
+         self.assert_('<key_name>value</key_name>' in xml)
+ 
++    def test_to_xml_should_consider_attributes_on_element_with_children(self):
++        custom_field_xml = '''
++            <custom_field name="custom1" id="1">
++              <value>cust1</value>
++            </custom_field>'''
++        expected = {
++                'custom_field': {
++                    'name': 'custom1',
++                    'id': '1',
++                    'value': 'cust1'}
++                }
++        result = util.xml_to_dict(custom_field_xml, saveroot=True)
++        self.assertEqual(expected, result)
++
+ 
+ if __name__ == '__main__':
+     unittest.main()
+diff --git src/util.py.orig src/util.py
+index 0277b9c..43b1c2b 100644
+--- src/util.py.orig
++++ src/util.py
+@@ -372,7 +372,7 @@ def xml_to_dict(xmlobj, saveroot=True):
+                 underscore(element.get('type', '')), element.items())
+         else:
+             attributes = element_containers.ElementDict(singularize(
+-                element.tag.replace('-', '_')))
++                element.tag.replace('-', '_')), element.items())
+         for child in element.getchildren():
+             attribute = xml_to_dict(child, saveroot)
+             child_tag = child.tag.replace('-', '_')
